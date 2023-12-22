@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FixyText and Chill</title>
+    <meta name="description" content="FixyText - beats to study/relax to">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap">
+    <style>
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Inter', sans-serif;
+        }
+
+        #overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+            cursor: pointer;
+            z-index: 2;
+            transition: opacity 2s ease-in-out;
+        }
+
+        #overlayText {
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        #background-video {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: 1;
+        }
+
+        #volume-bar {
+            position: fixed;
+            top: 50%;
+            left: 10px;
+            transform: translateY(-50%) rotate(180deg);
+            background-color: rgba(255, 255, 255, 0.5);
+            height: 80px;
+            width: 8px;
+            border-radius: 4px;
+            display: none;
+            transition: opacity 0.5s ease-in-out;
+            z-index: 3;
+        }
+
+        #volume-fill {
+            width: 100%;
+            background-color: #fff;
+            height: 100%;
+            border-radius: 4px;
+            transition: height 0.5s ease;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="overlay" onclick="initiatePlayback()">
+        Click to Start
+        <div id="overlayText">Control volume with arrow keys</div>
+    </div>
+
+    <video id="background-video" loop muted>
+        <source src="Loop.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+
+    <audio id="background-audio" loop ontimeupdate="checkAudio()">
+        <source src="FixyLoop.mp3" type="audio/mp3">
+        Your browser does not support the audio tag.
+    </audio>
+
+    <div id="volume-bar">
+        <div id="volume-fill"></div>
+    </div>
+
+    <script>
+        var volumeTimeout;
+
+        function initiatePlayback() {
+            var overlay = document.getElementById('overlay');
+            var audio = document.getElementById('background-audio');
+            var volumeBar = document.getElementById('volume-bar');
+            var volumeFill = document.getElementById('volume-fill');
+
+            overlay.style.opacity = '0';
+
+            audio.play();
+
+            setTimeout(function () {
+                overlay.style.display = 'none';
+            }, 2000);
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            var video = document.getElementById('background-video');
+            var audio = document.getElementById('background-audio');
+
+            video.addEventListener('canplaythrough', function () {
+                video.play();
+            });
+
+            audio.addEventListener('canplaythrough', function () {
+            });
+
+            if (video.readyState > 3) {
+                video.play();
+            }
+        });
+
+
+        document.addEventListener('keydown', function (e) {
+            var audio = document.getElementById('background-audio');
+            var volumeBar = document.getElementById('volume-bar');
+            var volumeFill = document.getElementById('volume-fill');
+            var volume = audio.volume;
+
+            switch (e.key) {
+                case 'ArrowUp':
+                case 'ArrowRight':
+                    audio.volume = Math.min(volume + 0.05, 1);
+                    break;
+                case 'ArrowDown':
+                case 'ArrowLeft':
+                    audio.volume = Math.max(volume - 0.05, 0);
+                    break;
+            }
+
+            volumeBar.style.display = 'block';
+            volumeFill.style.height = (audio.volume * 100) + '%';
+
+            clearTimeout(volumeTimeout);
+            volumeTimeout = setTimeout(function () {
+                volumeBar.style.opacity = '0';
+                setTimeout(function () {
+                    volumeBar.style.display = 'none';
+                    volumeBar.style.opacity = '1';
+                }, 500);
+            }, 2000);
+        });
+
+        // Audio Loop
+        function checkAudio() {
+            var audio = document.getElementById('background-audio');
+            var loopStart = 44533; // Loop start in milliseconds
+
+            if (audio.currentTime * 1000 >= audio.duration * 1000 - 500) {
+                audio.currentTime = loopStart / 1000;
+            }
+        }
+    </script>
+</body>
+
+</html>
