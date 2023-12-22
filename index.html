@@ -96,6 +96,7 @@
 
     <script>
         var volumeTimeout;
+        var fadeInInterval;
 
         function initiatePlayback() {
             var overlay = document.getElementById('overlay');
@@ -105,7 +106,18 @@
 
             overlay.style.opacity = '0';
 
+            var randomStart = Math.random() * (audio.duration - 1) + 1;
+            audio.currentTime = randomStart;
+
+            audio.volume = 0;
             audio.play();
+            fadeInInterval = setInterval(function () {
+                if (audio.volume < 1) {
+                    audio.volume += 0.01;
+                } else {
+                    clearInterval(fadeInInterval);
+                }
+            }, 100);
 
             setTimeout(function () {
                 overlay.style.display = 'none';
@@ -128,12 +140,15 @@
             }
         });
 
-
         document.addEventListener('keydown', function (e) {
             var audio = document.getElementById('background-audio');
             var volumeBar = document.getElementById('volume-bar');
             var volumeFill = document.getElementById('volume-fill');
             var volume = audio.volume;
+
+            if (fadeInInterval) {
+                clearInterval(fadeInInterval);
+            }
 
             switch (e.key) {
                 case 'ArrowUp':
