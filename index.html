@@ -97,6 +97,9 @@
     <script>
         var volumeTimeout;
         var fadeInInterval;
+        var interruptionAudio;
+
+        var isAudioStarted = false;
 
         function initiatePlayback() {
             var overlay = document.getElementById('overlay');
@@ -104,24 +107,28 @@
             var volumeBar = document.getElementById('volume-bar');
             var volumeFill = document.getElementById('volume-fill');
 
-            overlay.style.opacity = '0';
+            if (!isAudioStarted) {
+                overlay.style.opacity = '0';
 
-            var randomStart = Math.random() * (audio.duration - 1) + 1;
-            audio.currentTime = randomStart;
+                var randomStart = Math.random() * (audio.duration - 1) + 1;
+                audio.currentTime = randomStart;
 
-            audio.volume = 0;
-            audio.play();
-            fadeInInterval = setInterval(function () {
-                if (audio.volume < 1) {
-                    audio.volume += 0.01;
-                } else {
-                    clearInterval(fadeInInterval);
-                }
-            }, 100);
+                audio.volume = 0;
+                audio.play();
+                fadeInInterval = setInterval(function () {
+                    if (audio.volume < 1) {
+                        audio.volume += 0.01;
+                    } else {
+                        clearInterval(fadeInInterval);
+                    }
+                }, 100);
 
-            setTimeout(function () {
-                overlay.style.display = 'none';
-            }, 2000);
+                setTimeout(function () {
+                    overlay.style.display = 'none';
+                }, 2000);
+
+                isAudioStarted = true;
+            }
         }
 
         document.addEventListener('DOMContentLoaded', function () {
@@ -159,6 +166,10 @@
                 case 'ArrowLeft':
                     audio.volume = Math.max(volume - 0.05, 0);
                     break;
+                case 'f':
+                case 'F':
+                    interruptAudio();
+                    break;
             }
 
             volumeBar.style.display = 'block';
@@ -183,6 +194,27 @@
                 audio.currentTime = loopStart / 1000;
             }
         }
+
+        function interruptAudio() {
+            if (interruptionAudio) {
+                interruptionAudio.pause();
+            }
+
+            var backgroundAudio = document.getElementById('background-audio');
+            var backgroundAudioVolume = backgroundAudio.volume;
+            var randomInterruption = Math.floor(Math.random() * 10) + 1;
+            var interruptionSource = `DE/${randomInterruption}.mp3`;
+
+            interruptionAudio = new Audio(interruptionSource);
+            interruptionAudio.volume = 1;
+            backgroundAudio.volume = 0;
+            interruptionAudio.play();
+
+            interruptionAudio.addEventListener('ended', function () {
+                backgroundAudio.volume = backgroundAudioVolume;
+            });
+        }
+
     </script>
 </body>
 
