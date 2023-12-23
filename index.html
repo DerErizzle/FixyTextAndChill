@@ -82,6 +82,7 @@
 
     <video id="background-video" loop muted playsinline>
         <source src="Loop.mp4" type="video/mp4">
+        <source src="Loop.webm" type="video/webm">
         Your browser does not support the video tag.
     </video>
 
@@ -135,21 +136,24 @@
             var video = document.getElementById('background-video');
             var audio = document.getElementById('background-audio');
 
-            video.addEventListener('canplaythrough', function () {
-                video.play();
-            });
+            var isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints;
 
-            audio.addEventListener('canplaythrough', function () { });
+            function playOnUserInteraction() {
+                video.removeEventListener('canplaythrough', playOnUserInteraction);
+                audio.removeEventListener('canplaythrough', playOnUserInteraction);
 
-            if (video.readyState > 3) {
                 video.play();
+                audio.play();
+
+                if (isTouchDevice) {
+                    video.addEventListener('click', function () {
+                        interruptAudio();
+                    });
+                }
             }
 
-            if ('ontouchstart' in window || navigator.maxTouchPoints) {
-                video.addEventListener('click', function () {
-                    interruptAudio();
-                });
-            }
+            video.addEventListener('canplaythrough', playOnUserInteraction);
+            audio.addEventListener('canplaythrough', playOnUserInteraction);
         });
 
         document.addEventListener('keydown', function (e) {
@@ -212,13 +216,16 @@
 
             interruptionAudio = new Audio(interruptionSource);
             interruptionAudio.volume = 1;
-            backgroundAudio.volume = 0;
+
+            backgroundAudio.pause();
             interruptionAudio.play();
 
             interruptionAudio.addEventListener('ended', function () {
                 backgroundAudio.volume = backgroundAudioVolume;
+                backgroundAudio.play();
             });
         }
+
     </script>
 </body>
 
